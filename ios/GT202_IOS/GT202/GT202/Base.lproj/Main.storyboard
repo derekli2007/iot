@@ -56,27 +56,6 @@
                                     <segue destination="GoO-PI-wkr" kind="modal" identifier="SEGUE_TO_REMOTE_CONTROL" id="ErU-vo-IVd"/>
                                 </connections>
                             </button>
-                            <textField hidden="YES" opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="IP address:port" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="qqG-6d-9Dp">
-                                <rect key="frame" x="14" y="518" width="197" height="30"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits" keyboardType="URL"/>
-                                <connections>
-                                    <action selector="setFocus:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="Ena-Ls-Iuo"/>
-                                    <action selector="textViewIpAddressDidBeginEditing:" destination="vXZ-lx-hvc" eventType="editingDidBegin" id="QMR-vj-yg6"/>
-                                    <action selector="textViewIpAddressDidEndEditing:" destination="vXZ-lx-hvc" eventType="editingDidEnd" id="xTQ-Gp-KCN"/>
-                                </connections>
-                            </textField>
-                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5q1-OQ-7wp">
-                                <rect key="frame" x="212" y="518" width="88" height="30"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Connect">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="onClickBtnConnect:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="Whw-zH-P2C"/>
-                                </connections>
-                            </button>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="24ºC" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6td-1Q-WgA">
                                 <rect key="frame" x="25" y="221" width="38" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -108,10 +87,8 @@
                     </view>
                     <navigationItem key="navigationItem" title="GT202 IOS" id="h8K-hL-jpg"/>
                     <connections>
-                        <outlet property="btnConnect" destination="5q1-OQ-7wp" id="8zp-aD-LiK"/>
                         <outlet property="btnLightBulb" destination="CWX-S6-6Pl" id="j8Y-OS-n3S"/>
                         <outlet property="debugText" destination="9Mp-s6-yGQ" id="Rs5-7b-qNM"/>
-                        <outlet property="editTextIP" destination="qqG-6d-9Dp" id="zoY-6I-M0m"/>
                         <outlet property="pickerMac" destination="3UI-1z-vNM" id="zee-P7-lJb"/>
                         <outlet property="textViewHumidity" destination="Rtf-bf-8e6" id="yms-vH-SBC"/>
                         <outlet property="textViewTemperature" destination="6td-1Q-WgA" id="OVb-NK-gue"/>

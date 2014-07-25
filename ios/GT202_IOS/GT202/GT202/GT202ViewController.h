@@ -8,9 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-NSInputStream *inputStream;
-NSOutputStream *outputStream;
-
 @interface GT202ViewController : UIViewController <NSStreamDelegate, UITextFieldDelegate>
 @property (weak, nonatomic) IBOutlet UILabel *textViewTemperature;
 @property (weak, nonatomic) IBOutlet UILabel *textViewHumidity;
