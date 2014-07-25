@@ -2,7 +2,6 @@ package com.arrow.gt202android;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
@@ -16,7 +15,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import android.net.ConnectivityManager;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.os.Bundle;
@@ -37,7 +35,6 @@ import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
@@ -49,11 +46,6 @@ import android.widget.Toast;
 import com.arrow.gt202android_v370.R;
 
 public class MainActivity extends Activity{
-
-	//private DatagramSocket udpSocket;
-	//private byte[] udpData = new byte[16];
-	//private DatagramPacket udpPacket = new DatagramPacket(udpData, 16);
-	//Thread serverThread = null;
 
 	Thread multicastThread = null;
 	MulticastSocket multicastSocket = null;
@@ -67,67 +59,24 @@ public class MainActivity extends Activity{
 	final String GROUP_IP="224.2.2.2";
 	InetAddress group = null;
 
-	private boolean isTestMode = false;
 	private GestureDetector gd = null;
 	public static final int SERVERPORT = 2222;
 
-	// App State
-	private static final int SERVER_SOCKET_ESTABLISHED = 0;
-	private static final int SERVER_SOCKET_ESTABLISH_FAILED = 1;
-
+	// APP State
 	private static final int UPDATE_TEMPERATURE = 4;
 	private static final int UPDATE_HUMIDITY = 5;
 	private static final int ACK_TURN_LED_ON = 6;
 	private static final int ACK_TURN_LED_OFF = 7;
 	private static final int ADD_DEBUG_TEXT = 8;
-	private static final int UPDATE_T_H_PERIODICALLY = 9; // AL
+	private static final int UPDATE_T_H_PERIODICALLY = 9;
 
 	private static final int MULTICAST_SOCKET_ESTABLISHED = 10;
 	private static final int MULTICAST_SOCKET_ESTABLISH_FAILED = 11;
 	private static final int MULTICAST_SOCKET_CLOSED = 12;
 	private static final int CMD_GET_ALL = 13;
 	
-	Boolean isConnectedToDevice = false;
 	String strTargetTemperature;
 	String strTargetHumidity;
-
-	//old protocol
-	/*
-	byte[] cmdGetTemperature = { (byte)0x55, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00};
-	byte[] cmdGetHumidity = { (byte)0x55, (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdTurnOnLED = { (byte)0x55, (byte)0x02, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdTurnOffLED = { (byte)0x55, (byte)0x03, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdGetTemperatureAndHumidity = { (byte)0x55, (byte)0x04, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdSetTemperature = { (byte)0x55, (byte)0x05, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00};
-	byte[] cmdSetHumidity = { (byte)0x55, (byte)0x06, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-
-	byte[] cmdDVDNumber0 = { (byte)0x55, (byte)0x10, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDNumber1 = { (byte)0x55, (byte)0x11, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDNumber2 = { (byte)0x55, (byte)0x12, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDNumber3 = { (byte)0x55, (byte)0x13, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDNumber4 = { (byte)0x55, (byte)0x14, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDNumber5 = { (byte)0x55, (byte)0x15, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDNumber6 = { (byte)0x55, (byte)0x16, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDNumber7 = { (byte)0x55, (byte)0x17, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDNumber8 = { (byte)0x55, (byte)0x18, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDNumber9 = { (byte)0x55, (byte)0x19, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDUp = { (byte)0x55, (byte)0x20, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDDown = { (byte)0x55, (byte)0x21, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDLeft = { (byte)0x55, (byte)0x22, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDRight = { (byte)0x55, (byte)0x23, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDOk = { (byte)0x55, (byte)0x24, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDSet = { (byte)0x55, (byte)0x25, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDBack = { (byte)0x55, (byte)0x26, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDPower = { (byte)0x55, (byte)0x27, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDMute = { (byte)0x55, (byte)0x28 ,(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDPlay = { (byte)0x55, (byte)0x29, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDPause = { (byte)0x55, (byte)0x30, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDStop = { (byte)0x55, (byte)0x31, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDNext = { (byte)0x55, (byte)0x32, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDPrev = { (byte)0x55, (byte)0x33, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDFB = { (byte)0x55, (byte)0x34, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	byte[] cmdDVDFF = { (byte)0x55, (byte)0x35, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00 };
-	*/
 
 	private static final byte cmdGetTemperature = (byte)0x00;
 	private static final byte cmdGetHumidity = (byte)0x01;
@@ -247,14 +196,11 @@ public class MainActivity extends Activity{
 
 		strTargetTemperature = txtTemperature.getText().toString();
 		strTargetHumidity = txtHumidity.getText().toString();
-		
-		//this.serverThread = new Thread(new ServerThread());
-		//this.serverThread.start();
 
 		this.multicastThread = new Thread(new MulticastThread());
 		this.multicastThread.start();
 
-		// Periodically update T & H, ack as heart beat packages
+		// Periodically check network
 		Timer mTimer = new Timer();        
 	 	mTimer.schedule(new TimerTask() {            
 			@Override
@@ -290,10 +236,6 @@ public class MainActivity extends Activity{
 						multicastThread.start();
 					}
 				}
-				
-				//Message message;
-				//message = mainHandler.obtainMessage(CMD_GET_ALL, GROUP_IP + ":" + MULTICAST_PORT);
-				//mainHandler.sendMessage(message);
 
 			}
 	 	}, 10*1000, 10*1000); 	
@@ -307,12 +249,8 @@ public class MainActivity extends Activity{
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		try {
-			/*if (serverThread != null) {
-				serverThread.interrupt();
-			}
-			udpSocket.close();*/
-			
+		try 
+		{
 			if (multicastThread != null) {
 				multicastThread.interrupt();
 			}
@@ -373,8 +311,8 @@ public class MainActivity extends Activity{
 		
 		dlgTemperature = new AlertDialog.Builder(this)
    		.setTitle("Set Temperature")
-//     	.setPositiveButton("Submit", null)
-//     	.setNegativeButton("Cancel", null)
+   		//.setPositiveButton("Submit", null)
+   		//.setNegativeButton("Cancel", null)
      	.setView(layout)
      	.show();
 		
@@ -412,16 +350,7 @@ public class MainActivity extends Activity{
 	}
 
 	public void setTemperature(int temp) {
-		/*
-		try {
-			byte[] cmd = cmdSetTemperature;
-			cmd[4] = (byte)(temp & 0xFF);
-			cmd[5] = (byte)((temp >> 8) & 0xFF);
-					
-			sendCommand(cmd);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
+		
 	}
 		
 	public void onClickBtnGetHumidity(View view) {
@@ -438,8 +367,8 @@ public class MainActivity extends Activity{
 		
 		dlgHumidity = new AlertDialog.Builder(this)
    		.setTitle("Set Humidity")
-//     	.setPositiveButton("Submit", null)
-//     	.setNegativeButton("Cancel", null)
+   		//.setPositiveButton("Submit", null)
+   		//.setNegativeButton("Cancel", null)
      	.setView(layout)
      	.show();
 		
@@ -477,56 +406,26 @@ public class MainActivity extends Activity{
 	}
 
 	public void setHumidity(int humidity) {
-		/*
-		try {
-			byte[] cmd = cmdSetHumidity;
-			cmd[4] = (byte)(humidity & 0xFF);
-			cmd[5] = (byte)((humidity >> 8) & 0xFF);
-					
-			sendCommand(cmd);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
+		
 	}
 		
 	public void onClickSwitchLightBulb(View view) {
-		if (isTestMode) {
-			byte[] debug = { (byte) 0xAA, (byte) 0x04, (byte) 0x53,
-					(byte) 0x00, (byte) 0x1B, (byte) 0x00, (byte) 0x1C };
-//			byte[] debug = { (byte) 0xAA, (byte) 0x01, (byte) 0x53,
-//					(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xFE };
-			try {
-				sendBytes(debug);
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-
-			return;
-		}
-		
+	
 		itemMacSpinner itemMac = (itemMacSpinner) macSpinner.getSelectedItem();
 		
 		if (!isLightOn) {
 			try {
 				sendCommand(cmdTurnOnLED, itemMac.getMac());
-				// switchBulb.setImageResource(R.drawable.lightbulb_on);
-				// layout.setBackgroundResource(R.drawable.background);
-				// isLightOn = true;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		} else {
 			try {
 				sendCommand(cmdTurnOffLED, itemMac.getMac());
-				// switchBulb.setImageResource(R.drawable.lightbulb_off);
-				// layout.setBackgroundResource(R.drawable.background_dim);
-				// isLightOn = false;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-
-		
 	}
 
 	public void onClickBtnDVDRemote(View view) {
@@ -536,8 +435,8 @@ public class MainActivity extends Activity{
 		
 		dlgDVDRemote = new AlertDialog.Builder(this)
    		.setTitle("DVD")
-//     	.setPositiveButton("Submit", null)
-//     	.setNegativeButton("Cancel", null)
+   		//.setPositiveButton("Submit", null)
+   		//.setNegativeButton("Cancel", null)
      	.setView(layout)
      	.show();
 	}
@@ -642,7 +541,7 @@ public class MainActivity extends Activity{
 
 		byte[] cmd = new byte[PACKET_LENGTH];
 		
-		// Build the cmd packet according to protocol KL26+GT202_APP_Protocol
+		// Build the CMD packet according to protocol KL26+GT202_APP_Protocol
 		cmd[0] = (byte)0x55;
 		System.arraycopy(macAddress, 0, cmd, 1, 6);
 		cmd[7] = cmdType;
@@ -667,26 +566,6 @@ public class MainActivity extends Activity{
 			throw new IllegalArgumentException("Negative length not allowed");
 		if (start < 0 || start >= myByteArray.length)
 			throw new IndexOutOfBoundsException("Out of bounds: " + start);
-
-		/*if(isConnectedToDevice == true)
-		{
-			int device_port = 2222;
-			InetAddress device_address = null;
-			DatagramSocket s = null;  
-			try {  
-				device_address = InetAddress.getByName(udpPacket.getAddress().getHostAddress());
-				s = new DatagramSocket();  
-			} catch (SocketException e) {  
-				e.printStackTrace();  
-			}  
-			DatagramPacket p = new DatagramPacket(myByteArray, len, device_address, device_port);  
-			try {  
-				s.send(p);  
-			} catch (IOException e) {  
-				e.printStackTrace();  
-			} 
-		}*/
-		
 			
 		if(multicastSocket != null) {
 			multicastSendPacket = new DatagramPacket(myByteArray, len, group, MULTICAST_PORT);
@@ -720,90 +599,6 @@ public class MainActivity extends Activity{
 	}
 
 	class MulticastThread implements Runnable {
-		/*public void run() {
-			MulticastSocket multicastSocket = null;
-			DatagramPacket dataPacket = null;
-			final int MULTICAST_PORT = 5111;
-			final String GROUP_IP="224.2.2.2";
-			final int MAX_DATA_PACKET_LENGTH = 68;
-			byte[] cmd = new byte[MAX_DATA_PACKET_LENGTH];
-			byte[] receiveData = new byte[256];
-			DatagramPacket receiveDataPacket = null;
-			
-			MulticastLock multicastLock = null;
-
-			try 
-			{
-				WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
-
-				//获取组播锁
-				multicastLock = wifiMgr.createMulticastLock("multicast.test");
-				multicastLock.acquire();
-				
-				multicastSocket = new MulticastSocket(MULTICAST_PORT);
-				multicastSocket.setLoopbackMode(true);
-				InetAddress group = InetAddress.getByName(GROUP_IP);
-				multicastSocket.joinGroup(group);
-
-				//start build packet
-				cmd[0] = (byte)0x55;
-
-				String ssid = "ioe_wifi";
-				cmd[1] = (byte) ssid.getBytes().length;
-				System.arraycopy(ssid.getBytes(), 0, cmd, 2, ssid.getBytes().length);
-				
-				String key = "654321";
-				cmd[2 + ssid.getBytes().length] = (byte) key.getBytes().length;
-				System.arraycopy(key.getBytes(), 0, cmd, 2 + ssid.getBytes().length + 1, key.getBytes().length);
-				
-				int crc = 0;
-				for (int i = 0; i < cmd.length; i++) {
-					crc += (cmd[i] & 0xFF);
-				}
-				
-				crc = crc % 256;
-				
-				byte[] cmd_with_crc = new byte[cmd.length + 1];
-				System.arraycopy(cmd, 0, cmd_with_crc, 0, cmd.length);
-				cmd_with_crc[cmd.length] = (byte)(crc & 0xFF); 
-				
-				dataPacket = new DatagramPacket(cmd_with_crc, cmd_with_crc.length, group, MULTICAST_PORT);
-				//end build packet
-				
-				receiveDataPacket = new DatagramPacket(receiveData, receiveData.length, group, MULTICAST_PORT);
-
-				Message message;
-				message = mainHandler.obtainMessage(MULTICAST_SOCKET_ESTABLISHED, GROUP_IP + ":" + MULTICAST_PORT);
-				mainHandler.sendMessage(message);
-			}
-			catch (IOException e) {
-				e.printStackTrace();
-				
-				Message message;
-				message = mainHandler.obtainMessage(MULTICAST_SOCKET_ESTABLISH_FAILED, GROUP_IP + ":" + MULTICAST_PORT);
-				mainHandler.sendMessage(message);
-			}
-
-			while ((!Thread.currentThread().isInterrupted()) && (multicastSocket != null)) {
-			
-				try {     
-					multicastSocket.send(dataPacket);
-					Thread.sleep(500);
-					
-					multicastSocket.receive(receiveDataPacket);
-					// TODO
-					Message message;
-					message = mainHandler.obtainMessage(ADD_DEBUG_TEXT, "Get multicast packet from " + receiveDataPacket.getAddress().getHostAddress());
-					mainHandler.sendMessage(message);
-					
-				} catch(Exception e) {
-					e.printStackTrace();
-				}    
-			}
-			multicastSocket.close();
-			multicastLock.release();
-		}*/
-		
 		public void run() {
 
 			prepareMulticast();
@@ -858,48 +653,7 @@ public class MainActivity extends Activity{
 		}
 	}
 	
-	/*class ServerThread implements Runnable {
-		public void run() {
-			String ipAddress = "";
-
-			try {
-				WifiManager wifiMgr = (WifiManager) getSystemService(WIFI_SERVICE);
-				WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-				ipAddress = intToIp(wifiInfo.getIpAddress());
-
-				udpSocket = new DatagramSocket(SERVERPORT);
-
-				String connectedAddr = ipAddress + ":" + SERVERPORT;
-				Message message;
-				message = mainHandler.obtainMessage(SERVER_SOCKET_ESTABLISHED,
-						connectedAddr);
-				mainHandler.sendMessage(message);
-			} catch (IOException e) {
-				e.printStackTrace();
-
-				String connectedAddr = ipAddress + ":" + SERVERPORT;
-				Message message;
-				message = mainHandler.obtainMessage(
-						SERVER_SOCKET_ESTABLISH_FAILED, connectedAddr);
-				mainHandler.sendMessage(message);
-			}
-
-			while (!Thread.currentThread().isInterrupted()) {
-				try {
-					udpSocket.receive(udpPacket);
-					isConnectedToDevice = true;
-
-					Message message;
-					message = mainHandler.obtainMessage(ADD_DEBUG_TEXT, "Client connected!");
-					mainHandler.sendMessage(message);						
-					udpPacketProcess(udpPacket);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}*/
-
+	
 	public void multicastPacketProcess(DatagramPacket multicastPacket) {
 
 		try 
@@ -1052,162 +806,7 @@ public class MainActivity extends Activity{
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-	
 	}
-	
-	/*public void udpPacketProcess(DatagramPacket udpPacket) {
-
-		try 
-		{
-			if(udpPacket.getLength() == 0)
-			{
-				Message message;
-				
-				message = mainHandler.obtainMessage(ADD_DEBUG_TEXT,
-						"Client disconnected!"+udpPacket.getAddress().getHostAddress());
-				mainHandler.sendMessage(message);
-			}
-				
-			
-			if ((udpData[0] & 0xFF) != 0xAA) {
-				String preamble = "0x"
-						+ Integer.toHexString(udpData[0] & 0xFF);
-
-				Message message;
-				message = mainHandler.obtainMessage(ADD_DEBUG_TEXT,
-						"Invalid Packet received, started with: "
-								+ preamble);
-				mainHandler.sendMessage(message);
-
-				throw new IOException("Invalid packet");
-			}
-
-			// validate CRC byte
-			int crc = 0;
-			for (int i = 0; i < 6; i++) {
-				crc += (udpData[i] & 0xFF);
-			}
-			if (crc % 256 != (udpData[6] & 0xFF)) {
-				Message message;
-				message = mainHandler.obtainMessage(ADD_DEBUG_TEXT,
-						"Invalid Packet received, CRC error: "
-								+ byteToHexString(udpData));
-				mainHandler.sendMessage(message);
-
-				throw new IOException("CRC error");
-			}
-
-			// CRC validated, complete 7-byte command sequence
-			{
-				Message message;
-				message = mainHandler.obtainMessage(ADD_DEBUG_TEXT,
-						"Data received: " + byteToHexString(udpData));
-				mainHandler.sendMessage(message);
-			}
-
-			ByteBuffer cmd = ByteBuffer.wrap(udpData);
-
-			// Drop the first 0xAA
-			cmd.get();
-
-			byte cmdType = cmd.get();
-			switch (cmdType) {
-			case 0x00: {
-				// Get Temperature
-				cmd.order(ByteOrder.LITTLE_ENDIAN);
-				int temperature = cmd.getInt();
-				cmd.order(ByteOrder.BIG_ENDIAN);
-
-				Message message;
-				message = mainHandler.obtainMessage(UPDATE_TEMPERATURE,
-						Integer.toString(temperature));
-				mainHandler.sendMessage(message);
-
-				break;
-			}
-			case 0x01: {
-				// Get Humidity
-				cmd.order(ByteOrder.LITTLE_ENDIAN);
-				int humidity = cmd.getInt();
-				cmd.order(ByteOrder.BIG_ENDIAN);
-				
-				Message message;
-				message = mainHandler.obtainMessage(UPDATE_HUMIDITY,
-						Integer.toString(humidity));
-				mainHandler.sendMessage(message);
-
-				break;
-			}
-			case 0x02: {
-				// ACK - Turn On LED
-				int ack = cmd.getInt();
-
-				if (ack == 0x00) {
-					Message message;
-					message = mainHandler.obtainMessage(
-							ACK_TURN_LED_ON, null);
-					mainHandler.sendMessage(message);
-				}
-
-				break;
-			}
-			case 0x03: {
-				// ACK - Turn Off LED
-				int ack = cmd.getInt();
-
-				if (ack == 0x00) {
-					Message message;
-					message = mainHandler.obtainMessage(
-							ACK_TURN_LED_OFF, null);
-					mainHandler.sendMessage(message);
-				}
-
-				break;
-			}
-			case 0x04: {
-				// Get Humidity & Temperature
-				cmd.order(ByteOrder.LITTLE_ENDIAN);
-				int humidity = cmd.getShort();
-				int temperature = cmd.getShort();
-				cmd.order(ByteOrder.BIG_ENDIAN);
-
-				Message message;
-				message = mainHandler.obtainMessage(UPDATE_TEMPERATURE,
-						Integer.toString(temperature));
-				mainHandler.sendMessage(message);
-
-				message = mainHandler.obtainMessage(UPDATE_HUMIDITY,
-						Integer.toString(humidity));
-				mainHandler.sendMessage(message);
-
-				break;
-			}
-			case 0x05: {
-				// Set Temperature
-				cmd.order(ByteOrder.LITTLE_ENDIAN);
-				int dummy = cmd.getShort();
-				int temperature = cmd.getShort();
-				cmd.order(ByteOrder.BIG_ENDIAN);
-
-				break;
-			}
-			case 0x06: {
-				// Set Humidity
-				cmd.order(ByteOrder.LITTLE_ENDIAN);
-				int dummy = cmd.getShort();
-				int humidity = cmd.getShort();
-				cmd.order(ByteOrder.BIG_ENDIAN);
-
-				break;
-			}
-			default:
-				break;
-			}
-		} 
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-	}*/
 
 	private String byteToHexString(byte[] data) {
 		String hex = "";
@@ -1216,9 +815,7 @@ public class MainActivity extends Activity{
 			if (data[i] >= 0 && data[i] <= 9)
 				hex += "0";
 			hex += Integer.toHexString(data[i] & 0xFF) + " ";
-
 		}
-
 		return hex;
 	}
 	
@@ -1237,7 +834,6 @@ public class MainActivity extends Activity{
 		public void handleMessage(Message msg) {
 			super.handleMessage(msg);
 			
-			
 			String oldText = debugText.getText().toString();
 			if (oldText.length() > 1000) {
 				oldText = "";
@@ -1245,21 +841,6 @@ public class MainActivity extends Activity{
 
 			int what = msg.what;
 			switch (what) {
-			case SERVER_SOCKET_ESTABLISHED: {
-				String addr = (String) msg.obj;
-				debugText.setText(oldText
-						+ "Socket server started at " + addr + "\n" + "Waiting devices connect.\r\n");
-				scrollViewDebug.fullScroll(View.FOCUS_DOWN);
-			}
-				break;
-			case SERVER_SOCKET_ESTABLISH_FAILED: {
-				String addr = (String) msg.obj;
-				debugText.setText(oldText
-						+ "Failed to established server socket started at"
-						+ addr + "\n");
-				scrollViewDebug.fullScroll(View.FOCUS_DOWN);
-			}
-				break;
 			case UPDATE_T_H_PERIODICALLY:
 				onClickBtnTemperatureAndHumidity();
 				break;
